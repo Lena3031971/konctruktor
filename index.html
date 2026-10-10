@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Конструктор формул: Физика</title>
+<style>
+    :root {
+        /* Палитра: Нежно-голубой и Синий */
+        --bg-color: #eef6fd;
+        --card-bg: #ffffff;
+        --primary-blue: #0d47a1;
+        --accent-blue: #4a90d9;
+        --light-blue: #e3f0fb;
+        --btn-color: #1e88e5;
+        --btn-hover: #1565c0;
+        --success: #2e8b57;
+        --error: #cd5c5c;
+        --text-main: #33475b;
+        --radius: 8px;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        line-height: 1.6;
+        margin: 0;
+        padding-bottom: 40px;
+        background-image: radial-gradient(rgba(74, 144, 217, 0.35) 1px, transparent 1px);
+        background-size: 40px 40px;
+    }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+
+    /* Header */
+    header {
+        background: linear-gradient(135deg, #e8f3fd 0%, #b9dcf7 100%);
+        border-bottom: 3px solid var(--accent-blue);
+        padding: 25px;
+        border-radius: var(--radius);
+        margin-bottom: 25px;
+        box-shadow: 0 4px 10px rgba(13, 71, 161, 0.15);
+        text-align: center;
+    }
+
+    h1 {
+        color: var(--primary-blue);
+        margin: 0;
+        font-size: 1.4rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Панель студента (Вход) */
+    .student-panel {
+        background: var(--card-bg);
+        padding: 20px;
+        border-radius: var(--radius);
+        border: 1px solid var(--accent-blue);
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(13, 71, 161, 0.08);
+    }
+
+    input[type="text"] {
+        padding: 10px; border: 1px solid var(--accent-blue);
+        border-radius: 4px; width: 200px; background: #fff;
+    }
+    input[type="text"]:focus {
+        outline: none; border-color: var(--primary-blue);
+        box-shadow: 0 0 5px rgba(30, 136, 229, 0.3);
+    }
+
+    button { cursor: pointer; border: none; border-radius: 4px; font-weight: bold; transition: 0.3s; }
+    .btn-primary {
+        background: var(--btn-color); color: white; padding: 10px 25px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .btn-primary:hover { background: var(--btn-hover); transform: translateY(-1px); }
+
+    /* Основной контент и блокировка */
+    #main-content {
+        position: relative;
+        transition: opacity 0.3s;
+    }
+
+    /* Эффект блокировки до входа */
+    .locked #main-content {
+        opacity: 0.5;
+        pointer-events: none;
+        filter: grayscale(0.8);
+        user-select: none;
+    }
+
+    .lock-overlay-msg {
+        text-align: center;
+        color: var(--primary-blue);
+        font-weight: bold;
+        margin-bottom: 10px;
+        display: none;
+    }
+    .locked .lock-overlay-msg { display: block; }
+
+    /* Panels */
+    .panel {
+        background: var(--card-bg); padding: 25px;
+        border-radius: var(--radius);
+        border: 1px solid rgba(74, 144, 217, 0.3);
+        box-shadow: 0 4px 15px rgba(13, 71, 161, 0.08);
+        margin-bottom: 25px;
+    }
+
+    .controls { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 10px;}
+    select {
+        padding: 8px; font-size: 1rem; border-radius: 4px;
+        border: 1px solid var(--accent-blue); background: #fff; color: var(--text-main);
+    }
+
+    /* Constructor */
+    .formula-title {
+        font-size: 1.2rem; color: var(--primary-blue);
+        border-bottom: 2px solid var(--accent-blue);
+        display: inline-block; margin-bottom: 15px; padding-bottom: 5px;
+    }
+    .hint-text { font-size: 0.95rem; color: #666; margin-bottom: 20px; font-style: italic; }
+
+    .drop-zone {
+        min-height: 80px;
+        background: var(--light-blue);
+        border: 2px dashed var(--accent-blue);
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center; gap: 12px;
+        padding: 15px; margin-bottom: 25px; flex-wrap: wrap;
+    }
+
+    .slot {
+        width: 60px; height: 55px;
+        background: white; border: 1px solid var(--accent-blue);
+        border-radius: 6px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.3rem; font-weight: bold; color: var(--primary-blue);
+        box-shadow: inset 0 0 5px rgba(13, 71, 161, 0.06);
+    }
+    .slot.wide { width: 110px; }
+    .slot.filled { border-style: solid; background: #fff; border-color: var(--primary-blue); }
+
+    .cards-pool { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 25px; min-height: 60px;}
+    .card {
+        padding: 12px 18px;
+        background: linear-gradient(to bottom, #64b5f6, #1e88e5);
+        color: #ffffff;
+        border-radius: 6px;
+        cursor: grab; user-select: none;
+        font-size: 1.2rem; font-weight: bold;
+        box-shadow: 0 3px 5px rgba(13, 71, 161, 0.25);
+        border: 1px solid #1565c0;
+        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
+    }
+    .card:active { cursor: grabbing; transform: scale(0.98); }
+    .card.used { opacity: 0.3; pointer-events: none; filter: grayscale(100%); }
+
+    .action-row { display: flex; gap: 15px; justify-content: center; margin-top: 10px;}
+    .btn-reset { background: #e0e0e0; color: #555; padding: 10px 20px; border: 1px solid #ccc; }
+    .btn-reset:hover { background: #d0d0d0; }
+    .btn-check-formula { background: var(--primary-blue); color: white; padding: 10px 25px; }
+    .btn-check-formula:hover { background: #0a3d91; }
+
+    .feedback { text-align: center; font-weight: bold; min-height: 24px; margin-top: 15px; font-size: 1.1rem; }
+    .feedback.err { color: var(--error); }
+    .feedback.ok { color: var(--success); }
+
+    /* Tasks */
+    #tasks-area { display: none; animation: fadeIn 0.5s; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .task-item {
+        border-left: 5px solid var(--accent-blue);
+        padding: 20px; margin-bottom: 20px;
+        background: #fff;
+        box-shadow: 0 2px 8px rgba(13, 71, 161, 0.07);
+        border-radius: 0 8px 8px 0;
+    }
+    .task-input {
+        width: 120px; padding: 8px;
+        border: 1px solid var(--accent-blue); border-radius: 4px;
+        margin-left: 10px; font-size: 1rem;
+    }
+    .task-res { margin-left: 15px; font-weight: bold; font-size: 0.95rem; }
+
+    .btn-finish {
+        width: 100%; padding: 15px;
+        background: var(--success); color: white;
+        font-size: 1.2rem; margin-top: 25px;
+        border-radius: var(--radius);
+    }
+    .btn-finish:hover { background: #267347; }
+
+    /* Result */
+    #result-area { display: none; text-align: center; border: 2px solid var(--accent-blue); background: #f5faff; }
+    .big-score { font-size: 3.5rem; color: var(--primary-blue); font-weight: bold; margin: 15px 0; text-shadow: 2px 2px 0px rgba(13, 71, 161, 0.12); }
+
+    @media (max-width: 600px) {
+        .student-panel { flex-direction: column; align-items: stretch; }
+        input[type="text"] { width: 100%; }
+        .slot { width: 45px; height: 45px; font-size: 1.1rem; }
+        .slot.wide { width: 80px; }
+        h1 { font-size: 1.1rem; }
+    }
+</style>
+</head>
+<body class="locked"> <!-- Класс locked стоит по умолчанию -->
+
+<header>
+    <div class="container">
+        <h1>Тренажер по физике для студентов 1 курса колледжа "Конструктор формул"</h1>
+    </div>
+</header>
+
+<div class="container">
+
+    <!-- Панель идентификации (Всегда видна сверху) -->
+    <div class="student-panel" id="login-panel">
+        <input type="text" id="inp-name" placeholder="Фамилия студента">
+        <input type="text" id="inp-group" placeholder="Номер группы">
+        <button class="btn-primary" onclick="app.activate()">Начать работу</button>
+    </div>
+
+    <div class="lock-overlay-msg">⬇ Введите данные выше, чтобы активировать тренажер ⬇</div>
+
+    <!-- Основной рабочий стол -->
+    <div id="main-content">
+
+        <!-- Панель выбора типа движения -->
+        <div class="panel controls">
+            <div style="font-size: 1.1rem;">
+                <strong>Студент:</strong> <span id="ui-name" style="color:#999">---</span>
+                <span style="color:#ccc">|</span>
+                <strong>Группа:</strong> <span id="ui-group" style="color:#999">---</span>
+            </div>
+            <div>
+                <label style="font-weight:bold; color:var(--primary-blue)">Тип движения: </label>
+                <select id="sel-type" onchange="app.resetLevel()">
+                    <option value="uniform">Равномерное</option>
+                    <option value="accel">Равноускоренное</option>
+                    <option value="decel">Равнозамедленное</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Конструктор -->
+        <div class="panel">
+            <div class="formula-title">Этап 1. Сборка формулы</div>
+            <p class="hint-text" id="formula-hint">Перетащите элементы в пустые ячейки, чтобы составить верную формулу.</p>
+
+            <div class="drop-zone" id="slots-container"></div>
+            <div class="cards-pool" id="cards-container"></div>
+
+            <div class="feedback" id="formula-msg"></div>
+
+            <div class="action-row">
+                <button class="btn-reset" onclick="app.renderConstructor()">Сбросить поле</button>
+                <button class="btn-check-formula" onclick="app.checkFormula()">Проверить формулу</button>
+            </div>
+        </div>
+
+        <!-- Задачи -->
+        <div id="tasks-area">
+            <div class="panel">
+                <div class="formula-title">Этап 2. Практические задачи</div>
+                <p class="hint-text">Решите 5 задач из области сварочного производства. Ответ вводите числом.</p>
+                <div id="tasks-list"></div>
+                <button class="btn-finish" onclick="app.finish()">Завершить и оценить</button>
+            </div>
+        </div>
+
+        <!-- Результат -->
+        <div class="panel" id="result-area">
+            <h2 id="res-title" style="color:var(--primary-blue)">Итоговый результат</h2>
+            <div class="big-score"><span id="res-score">0</span>/5</div>
+            <p id="res-comment" style="margin-bottom: 20px; font-size: 1.1rem;"></p>
+            <button class="btn-primary" onclick="location.reload()">Пройти заново</button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+const app = {
+    data: {
+        name: '', group: '', type: 'uniform', score: 0, tasks: []
+    },
+
+    formulas: {
+        uniform: {
+            hint: "Соберите формулу пути (S) при равномерном движении.",
+            target: ['S', '=', 'v', '·', 't'],
+            distractors: ['a', 't²', '/2', 'v₀']
+        },
+        accel: {
+            hint: "Соберите формулу пути (S) при равноускоренном движении (с начальной скоростью).",
+            target: ['S', '=', 'v₀', '·', 't', '+', 'at²/2'],
+            distractors: ['-', 'v', '2at', 'a']
+        },
+        decel: {
+            hint: "Соберите формулу тормозного пути (S) при равнозамедленном движении.",
+            target: ['S', '=', 'v₀', '·', 't', '-', 'at²/2'],
+            distractors: ['+', 'v', 'a', 'F']
+        }
+    },
+
+    activate: function() {
+        const n = document.getElementById('inp-name').value.trim();
+        const g = document.getElementById('inp-group').value.trim();
+
+        if (!n || !g) {
+            alert("Пожалуйста, введите фамилию и номер группы для начала работы.");
+            return;
+        }
+
+        this.data.name = n;
+        this.data.group = g;
+
+        // Обновляем UI
+        const uiName = document.getElementById('ui-name');
+        const uiGroup = document.getElementById('ui-group');
+        uiName.textContent = n;
+        uiName.style.color = 'var(--primary-blue)';
+        uiGroup.textContent = g;
+        uiGroup.style.color = 'var(--text-main)';
+
+        // Разблокируем интерфейс
+        document.body.classList.remove('locked');
+
+        this.renderConstructor();
+    },
+
+    resetLevel: function() {
+        if (document.body.classList.contains('locked')) return; // Не сбрасывать, если не вошли
+
+        this.data.type = document.getElementById('sel-type').value;
+        document.getElementById('tasks-area').style.display = 'none';
+        document.getElementById('result-area').style.display = 'none';
+        const msg = document.getElementById('formula-msg');
+        msg.textContent = '';
+        msg.className = 'feedback';
+        this.renderConstructor();
+    },
+
+    renderConstructor: function() {
+        const cfg = this.formulas[this.data.type];
+        document.getElementById('formula-hint').textContent = cfg.hint;
+
+        const slotsDiv = document.getElementById('slots-container');
+        const cardsDiv = document.getElementById('cards-container');
+        slotsDiv.innerHTML = '';
+        cardsDiv.innerHTML = '';
+
+        // Сброс сообщения обратной связи
+        const msg = document.getElementById('formula-msg');
+        msg.textContent = '';
+        msg.className = 'feedback';
+
+        cfg.target.forEach((val) => {
+            const s = document.createElement('div');
+            s.className = 'slot';
+            if (val === 'at²/2') s.classList.add('wide');
+            s.ondragover = e => e.preventDefault();
+            s.ondrop = e => this.handleDrop(e, s);
+            slotsDiv.appendChild(s);
+        });
+
+        // Разрешаем вернуть карточку перетаскиванием обратно в пул
+        cardsDiv.ondragover = e => e.preventDefault();
+        cardsDiv.ondrop = e => this.handleDropToPool(e, cardsDiv);
+
+        const items = [...cfg.target, ...cfg.distractors];
+        items.sort(() => Math.random() - 0.5);
+
+        items.forEach(txt => {
+            const c = document.createElement('div');
+            c.className = 'card';
+            c.textContent = txt;
+            c.draggable = true;
+            c.id = 'c-' + Math.random().toString(36).slice(2, 7);
+            c.dataset.val = txt;
+
+            c.ondragstart = e => {
+                e.dataTransfer.setData('text/plain', JSON.stringify({ id: c.id, val: txt }));
+            };
+
+            // Клик: вернуть карточку в пул ИЛИ положить в первую свободную ячейку (удобно на планшетах)
+            c.onclick = () => {
+                const parent = c.parentElement;
+                if (parent && parent.classList.contains('slot')) {
+                    parent.classList.remove('filled');
+                    cardsDiv.appendChild(c);
+                } else {
+                    const emptySlot = Array.from(slotsDiv.children).find(s => !s.hasChildNodes());
+                    if (emptySlot) {
+                        emptySlot.appendChild(c);
+                        emptySlot.classList.add('filled');
+                    }
+                }
+            };
+
+            cardsDiv.appendChild(c);
+        });
+    },
+
+    handleDrop: function(e, slot) {
+        e.preventDefault();
+        if (slot.hasChildNodes()) return;
+        try {
+            const d = JSON.parse(e.dataTransfer.getData('text/plain'));
+            const card = document.getElementById(d.id);
+            if (card) {
+                // Если карточка уже стояла в другой ячейке — снимаем с неё подсветку
+                const oldParent = card.parentElement;
+                if (oldParent && oldParent.classList.contains('slot')) {
+                    oldParent.classList.remove('filled');
+                }
+                slot.appendChild(card);
+                slot.classList.add('filled');
+            }
+        } catch (err) { /* некорректные данные перетаскивания игнорируем */ }
+    },
+
+    handleDropToPool: function(e, pool) {
+        e.preventDefault();
+        try {
+            const d = JSON.parse(e.dataTransfer.getData('text/plain'));
+            const card = document.getElementById(d.id);
+            if (card) {
+                const oldParent = card.parentElement;
+                if (oldParent && oldParent.classList.contains('slot')) {
+                    oldParent.classList.remove('filled');
+                }
+                pool.appendChild(card);
+            }
+        } catch (err) { /* игнорируем */ }
+    },
+
+    checkFormula: function() {
+        const cfg = this.formulas[this.data.type];
+        const slots = document.querySelectorAll('.slot');
+        const current = [];
+        slots.forEach(s => {
+            current.push(s.hasChildNodes() ? s.firstChild.dataset.val : null);
+        });
+
+        const msg = document.getElementById('formula-msg');
+        if (JSON.stringify(current) === JSON.stringify(cfg.target)) {
+            msg.textContent = "Отлично! Формула верна. Приступаем к задачам.";
+            msg.className = "feedback ok";
+            this.generateTasks();
+            document.getElementById('tasks-area').style.display = 'block';
+            setTimeout(() => document.getElementById('tasks-area').scrollIntoView({ behavior: 'smooth' }), 100);
+        } else {
+            msg.textContent = "Есть ошибка. Проверьте порядок знаков и переменных.";
+            msg.className = "feedback err";
+        }
+    },
+
+    generateTasks: function() {
+        const type = this.data.type;
+        this.data.tasks = [];
+        const gens = {
+            uniform: [
+                () => { const v = rnd(2, 10), t = rnd(5, 20); return { txt: `Сварочный трактор движется со скоростью ${v} м/с в течение ${t} с. Найдите пройденный путь.`, ans: v * t, hint: 'S=v·t' }; },
+                () => { const t = rnd(4, 10), v = rnd(2, 8), s = v * t; return { txt: `Конвейер для подачи металла длиной ${s} м проходится за ${t} с. Какова скорость ленты?`, ans: v, hint: 'v=S/t' }; },
+                () => { const v = rnd(2, 5), t = rnd(10, 30), s = v * t; return { txt: `Мостовой кран перемещает балку на ${s} м со скоростью ${v} м/с. Сколько времени это займет?`, ans: t, hint: 't=S/v' }; }
+            ],
+            accel: [
+                () => { const v0 = rnd(2, 5), a = rnd(1, 3) * 2, t = rnd(2, 4); const s = v0 * t + 0.5 * a * t * t; return { txt: `Робот-сварщик разгоняется (a=${a} м/с²). Начальная скорость ${v0} м/с. Какой путь он пройдет за ${t} с?`, ans: s, hint: 'S=v₀t+at²/2' }; },
+                () => { const a = rnd(1, 4), t = rnd(2, 5), s = 0.5 * a * t * t; return { txt: `Тележка с заготовками тронулась с места и за ${t} с проехала ${s} м. Найдите ускорение.`, ans: a, hint: 'a=2S/t²' }; },
+                () => { const a = rnd(2, 6), t = rnd(2, 5), s = 0.5 * a * t * t; return { txt: `Автокар стартовал с ускорением ${a} м/с². Какой путь он прошел за ${t} с?`, ans: s, hint: 'S=at²/2' }; }
+            ],
+            decel: [
+                () => { const v0 = 20, a = 2, t = 5; const s = v0 * t - 0.5 * a * t * t; return { txt: `Шлифовальная машина тормозит: v₀=${v0} м/с, замедление a=${a} м/с². Путь до полной остановки за ${t} с?`, ans: s, hint: 'S=v₀t-at²/2' }; },
+                () => { const v0 = rnd(5, 15) * 2, a = rnd(1, 5); const t = v0 / a; return { txt: `Деталь скользит со скоростью ${v0} м/с. Коэффициент замедления ${a} м/с². Через сколько секунд она остановится?`, ans: t, hint: 't=v₀/a' }; },
+                () => { const v0 = 10, a = 2; const s = (v0 * v0) / (2 * a); return { txt: `Скорость вращения диска ${v0} м/с, замедление ${a} м/с². Какой путь пройдет точка на ободе до остановки?`, ans: s, hint: 'S=v₀²/2a' }; }
+            ]
+        };
+
+        const genArr = gens[type];
+        for (let i = 0; i < 5; i++) {
+            const task = genArr[Math.floor(Math.random() * genArr.length)]();
+            this.data.tasks.push(task);
+        }
+        this.renderTasks();
+    },
+
+    renderTasks: function() {
+        const div = document.getElementById('tasks-list');
+        div.innerHTML = '';
+        this.data.tasks.forEach((t, i) => {
+            div.innerHTML += `
+                <div class="task-item">
+                    <div style="font-size:1.05rem">${i + 1}. ${t.txt}</div>
+                    <div style="margin-top:10px;">
+                        Ваш ответ: <input type="number" step="0.1" class="task-input" id="ans-${i}">
+                        <span class="task-res" id="res-${i}"></span>
+                    </div>
+                </div>`;
+        });
+    },
+
+    finish: function() {
+        let score = 0;
+        this.data.tasks.forEach((t, i) => {
+            const inp = document.getElementById(`ans-${i}`);
+            const res = document.getElementById(`res-${i}`);
+            const val = parseFloat(inp.value);
+
+            if (Math.abs(val - t.ans) < 0.11) {
+                score++;
+                res.textContent = "✔ Верно";
+                res.style.color = "var(--success)";
+            } else {
+                res.textContent = `✘ Ошибка (Верно: ${t.ans})`;
+                res.style.color = "var(--error)";
+            }
+        });
+
+        this.data.score = score;
+        document.getElementById('res-score').textContent = score;
+        const title = document.getElementById('res-title');
+        const comment = document.getElementById('res-comment');
+
+        if (score === 5) {
+            title.textContent = "Блестящий результат!";
+            comment.textContent = "Вы отлично усвоили тему.";
+            title.style.color = "var(--success)";
+        } else if (score >= 3) {
+            title.textContent = "Неплохо";
+            comment.textContent = "Но стоит повторить формулы.";
+            title.style.color = "var(--btn-color)";
+        } else {
+            title.textContent = "Требуется подготовка";
+            comment.textContent = "Рекомендуем пройти тему заново.";
+            title.style.color = "var(--error)";
+        }
+
+        document.getElementById('result-area').style.display = 'block';
+        document.getElementById('result-area').scrollIntoView({ behavior: 'smooth' });
+    }
+};
+
+function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+</script>
+
+</body>
+</html>
